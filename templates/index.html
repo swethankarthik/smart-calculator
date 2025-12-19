@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Smart Calculator</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+<div class="phone">
+    <div class="calculator">
+        <div class="display" id="display">0</div>
+
+        <div class="buttons">
+            <!-- Row 1 -->
+            <button class="btn function" onclick="clearDisplay()">C</button>
+            <button class="btn function" onclick="backspace()">⌫</button>
+            <button class="btn function" onclick="percent()">%</button>
+            <button class="btn operator" onclick="setOp('/')">÷</button>
+
+            <!-- Row 2 -->
+            <button class="btn" onclick="press('7')">7</button>
+            <button class="btn" onclick="press('8')">8</button>
+            <button class="btn" onclick="press('9')">9</button>
+            <button class="btn operator" onclick="setOp('*')">×</button>
+
+            <!-- Row 3 -->
+            <button class="btn" onclick="press('4')">4</button>
+            <button class="btn" onclick="press('5')">5</button>
+            <button class="btn" onclick="press('6')">6</button>
+            <button class="btn operator" onclick="setOp('-')">−</button>
+
+            <!-- Row 4 -->
+            <button class="btn" onclick="press('1')">1</button>
+            <button class="btn" onclick="press('2')">2</button>
+            <button class="btn" onclick="press('3')">3</button>
+            <button class="btn operator" onclick="setOp('+')">+</button>
+
+            <!-- Row 5 -->
+            <button class="btn zero" onclick="press('0')">0</button>
+            <button class="btn" onclick="press('.')">.</button>
+            <button class="btn operator" onclick="calculate()">=</button>
+        </div>
+    </div>
+</div>
+
+<script>
+let current = "0";
+let previous = null;
+let operator = null;
+let shouldReset = false;
+
+const display = document.getElementById("display");
+
+function updateDisplay(value) {
+    display.innerText = value;
+}
+
+function press(num) {
+    if (shouldReset) {
+        current = num;
+        shouldReset = false;
+    } else {
+        current = current === "0" ? num : current + num;
+    }
+    updateDisplay(current);
+}
+
+function setOp(op) {
+    if (operator && !shouldReset) calculate();
+    previous = current;
+    operator = op;
+    shouldReset = true;
+}
+
+function calculate() {
+    if (!operator || previous === null) return;
+
+    fetch("/api/calculate", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({
+            num1: previous,
+            num2: current,
+            operation:
+                operator === "+" ? "add" :
+                operator === "-" ? "sub" :
+                operator === "*" ? "mul" : "div"
+        })
+    })
+    .then(res => res.json())
+    .then(data => {
+        current = data.result.toString();
+        updateDisplay(current);
+        previous = null;
+        operator = null;
+        shouldReset = true;
+    });
+}
+
+function clearDisplay() {
+    current = "0";
+    previous = null;
+    operator = null;
+    shouldReset = false;
+    updateDisplay(current);
+}
+
+function backspace() {
+    if (shouldReset) return;
+    current = current.length > 1 ? current.slice(0, -1) : "0";
+    updateDisplay(current);
+}
+
+function percent() {
+    current = (parseFloat(current) / 100).toString();
+    updateDisplay(current);
+}
+
+/* Keyboard support */
+document.addEventListener("keydown", e => {
+    if (!isNaN(e.key)) press(e.key);
+    if (e.key === ".") press(".");
+    if (e.key === "+") setOp("+");
+    if (e.key === "-") setOp("-");
+    if (e.key === "*") setOp("*");
+    if (e.key === "/") setOp("/");
+    if (e.key === "Enter" || e.key === "=") calculate();
+    if (e.key === "Backspace") backspace();
+    if (e.key === "Escape") clearDisplay();
+});
+</script>
+
+</body>
+</html>

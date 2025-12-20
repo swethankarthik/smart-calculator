@@ -1,133 +1,115 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
     <title>Smart Calculator</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
 
-<div class="phone">
-    <div class="calculator">
-        <div class="display" id="display">0</div>
+<div class="app">
+    <div class="display" id="display">0</div>
 
-        <div class="buttons">
-            <!-- Row 1 -->
-            <button class="btn function" onclick="clearDisplay()">C</button>
-            <button class="btn function" onclick="backspace()">⌫</button>
-            <button class="btn function" onclick="percent()">%</button>
-            <button class="btn operator" onclick="setOp('/')">÷</button>
+    <div class="buttons">
+        <button class="btn function" onclick="clearAll()">C</button>
+        <button class="btn function" onclick="backspace()">⌫</button>
+        <button class="btn function" onclick="percent()">%</button>
+        <button class="btn operator" onclick="setOperator('/')">÷</button>
 
-            <!-- Row 2 -->
-            <button class="btn" onclick="press('7')">7</button>
-            <button class="btn" onclick="press('8')">8</button>
-            <button class="btn" onclick="press('9')">9</button>
-            <button class="btn operator" onclick="setOp('*')">×</button>
+        <button class="btn" onclick="appendNumber('7')">7</button>
+        <button class="btn" onclick="appendNumber('8')">8</button>
+        <button class="btn" onclick="appendNumber('9')">9</button>
+        <button class="btn operator" onclick="setOperator('*')">×</button>
 
-            <!-- Row 3 -->
-            <button class="btn" onclick="press('4')">4</button>
-            <button class="btn" onclick="press('5')">5</button>
-            <button class="btn" onclick="press('6')">6</button>
-            <button class="btn operator" onclick="setOp('-')">−</button>
+        <button class="btn" onclick="appendNumber('4')">4</button>
+        <button class="btn" onclick="appendNumber('5')">5</button>
+        <button class="btn" onclick="appendNumber('6')">6</button>
+        <button class="btn operator" onclick="setOperator('-')">−</button>
 
-            <!-- Row 4 -->
-            <button class="btn" onclick="press('1')">1</button>
-            <button class="btn" onclick="press('2')">2</button>
-            <button class="btn" onclick="press('3')">3</button>
-            <button class="btn operator" onclick="setOp('+')">+</button>
+        <button class="btn" onclick="appendNumber('1')">1</button>
+        <button class="btn" onclick="appendNumber('2')">2</button>
+        <button class="btn" onclick="appendNumber('3')">3</button>
+        <button class="btn operator" onclick="setOperator('+')">+</button>
 
-            <!-- Row 5 -->
-            <button class="btn zero" onclick="press('0')">0</button>
-            <button class="btn" onclick="press('.')">.</button>
-            <button class="btn operator" onclick="calculate()">=</button>
-        </div>
+        <button class="btn zero" onclick="appendNumber('0')">0</button>
+        <button class="btn" onclick="appendNumber('.')">.</button>
+        <button class="btn operator" onclick="calculate()">=</button>
     </div>
 </div>
 
 <script>
-let current = "0";
-let previous = null;
+let currentValue = "0";
+let previousValue = null;
 let operator = null;
 let shouldReset = false;
 
 const display = document.getElementById("display");
 
-function updateDisplay(value) {
-    display.innerText = value;
+function updateDisplay() {
+    display.innerText = currentValue;
 }
 
-function press(num) {
+function appendNumber(num) {
     if (shouldReset) {
-        current = num;
+        currentValue = num;
         shouldReset = false;
     } else {
-        current = current === "0" ? num : current + num;
+        if (num === "." && currentValue.includes(".")) return;
+        currentValue = currentValue === "0" ? num : currentValue + num;
     }
-    updateDisplay(current);
+    updateDisplay();
 }
 
-function setOp(op) {
-    if (operator && !shouldReset) calculate();
-    previous = current;
+function setOperator(op) {
+    if (operator !== null) calculate();
+    previousValue = currentValue;
     operator = op;
     shouldReset = true;
 }
 
 function calculate() {
-    if (!operator || previous === null) return;
+    if (operator === null || previousValue === null) return;
 
-    fetch("/api/calculate", {
-        method: "POST",
-        headers: {"Content-Type": "application/json"},
-        body: JSON.stringify({
-            num1: previous,
-            num2: current,
-            operation:
-                operator === "+" ? "add" :
-                operator === "-" ? "sub" :
-                operator === "*" ? "mul" : "div"
-        })
-    })
-    .then(res => res.json())
-    .then(data => {
-        current = data.result.toString();
-        updateDisplay(current);
-        previous = null;
-        operator = null;
-        shouldReset = true;
-    });
+    let a = parseFloat(previousValue);
+    let b = parseFloat(currentValue);
+    let result = 0;
+
+    switch (operator) {
+        case "+": result = a + b; break;
+        case "-": result = a - b; break;
+        case "*": result = a * b; break;
+        case "/": result = b === 0 ? "Error" : a / b; break;
+    }
+
+    currentValue = result.toString();
+    operator = null;
+    previousValue = null;
+    shouldReset = true;
+    updateDisplay();
 }
 
-function clearDisplay() {
-    current = "0";
-    previous = null;
+function clearAll() {
+    currentValue = "0";
+    previousValue = null;
     operator = null;
     shouldReset = false;
-    updateDisplay(current);
+    updateDisplay();
 }
 
 function backspace() {
     if (shouldReset) return;
-    current = current.length > 1 ? current.slice(0, -1) : "0";
-    updateDisplay(current);
+    currentValue =
+        currentValue.length > 1
+            ? currentValue.slice(0, -1)
+            : "0";
+    updateDisplay();
 }
 
 function percent() {
-    current = (parseFloat(current) / 100).toString();
-    updateDisplay(current);
+    currentValue = (parseFloat(currentValue) / 100).toString();
+    updateDisplay();
 }
-
-/* Keyboard support */
-document.addEventListener("keydown", e => {
-    if (!isNaN(e.key)) press(e.key);
-    if (e.key === ".") press(".");
-    if (e.key === "+") setOp("+");
-    if (e.key === "-") setOp("-");
-    if (e.key === "*") setOp("*");
-    if (e.key === "/") setOp("/");
-    if (e.key === "Enter" || e.key === "=") calculate();
-    if (e.key === "Backspace") backspace();
-    if (e.key === "Escape") clearDisplay();
-});
 </script>
 
 </body>

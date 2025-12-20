@@ -8,8 +8,9 @@ body {
     font-family: -apple-system, BlinkMacSystemFont, sans-serif;
     display: flex;
     justify-content: center;
-    align-items: center;
+    align-items: flex-start;
     height: 100vh;
+    overflow-y: auto;
 }
 
 .app {
@@ -59,4 +60,46 @@ body {
 .zero {
     grid-column: span 2;
     border-radius: 35px;
+}
+
+.patterns {
+    margin-top: 20px;
+    color: white;
+}
+
+.patterns h3 {
+    margin: 10px 0;
+    font-size: 16px;
+    opacity: 0.8;
+}
+
+.save-btn {
+    width: 100%;
+    padding: 12px;
+    border-radius: 12px;
+    border: none;
+    background: #1e90ff;
+    color: white;
+    font-size: 16px;
+    cursor: pointer;
+    margin-bottom: 10px;
+}
+
+.save-btn:active {
+    transform: scale(0.97);
+}
+
+#patternList {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+#patternList li {
+    background: #222;
+    padding: 10px;
+    margin-bottom: 8px;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 14px;
 }

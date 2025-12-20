@@ -1,115 +1,234 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="dark">
 <head>
     <meta charset="UTF-8">
-    <title>Smart Calculator</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="/static/style.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>PatternCalc</title>
+
+    <!-- Tailwind -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: { 500: '#3b82f6', 600: '#2563eb' },
+                        zinc: { 950: '#09090b' }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body { font-family: Inter, system-ui, sans-serif; }
+    </style>
 </head>
-<body>
 
-<div class="app">
-    <div class="display" id="display">0</div>
+<body class="bg-zinc-950 text-white max-w-lg mx-auto h-screen overflow-hidden">
 
-    <div class="buttons">
-        <button class="btn function" onclick="clearAll()">C</button>
-        <button class="btn function" onclick="backspace()">⌫</button>
-        <button class="btn function" onclick="percent()">%</button>
-        <button class="btn operator" onclick="setOperator('/')">÷</button>
+<!-- HEADER -->
+<header class="px-6 py-5 flex justify-between items-center">
+    <div class="flex items-center gap-3">
+        <div class="w-10 h-10 bg-brand-600 rounded-2xl flex items-center justify-center">
+            <i class="fas fa-bolt"></i>
+        </div>
+        <div>
+            <h1 class="font-black text-xl">PatternCalc</h1>
+            <p class="text-xs text-brand-500 font-bold">Smart Calculator</p>
+        </div>
+    </div>
+</header>
 
-        <button class="btn" onclick="appendNumber('7')">7</button>
-        <button class="btn" onclick="appendNumber('8')">8</button>
-        <button class="btn" onclick="appendNumber('9')">9</button>
-        <button class="btn operator" onclick="setOperator('*')">×</button>
-
-        <button class="btn" onclick="appendNumber('4')">4</button>
-        <button class="btn" onclick="appendNumber('5')">5</button>
-        <button class="btn" onclick="appendNumber('6')">6</button>
-        <button class="btn operator" onclick="setOperator('-')">−</button>
-
-        <button class="btn" onclick="appendNumber('1')">1</button>
-        <button class="btn" onclick="appendNumber('2')">2</button>
-        <button class="btn" onclick="appendNumber('3')">3</button>
-        <button class="btn operator" onclick="setOperator('+')">+</button>
-
-        <button class="btn zero" onclick="appendNumber('0')">0</button>
-        <button class="btn" onclick="appendNumber('.')">.</button>
-        <button class="btn operator" onclick="calculate()">=</button>
+<!-- TABS -->
+<div class="px-6">
+    <div class="flex bg-zinc-800 rounded-2xl p-1">
+        <button id="tab-calc" onclick="switchTab('calc')" class="flex-1 py-2 rounded-xl bg-white text-black font-bold">Calculator</button>
+        <button id="tab-library" onclick="switchTab('library')" class="flex-1 py-2 rounded-xl text-zinc-400 font-bold">Library</button>
     </div>
 </div>
 
+<!-- MAIN -->
+<main class="px-6 pt-6 h-full">
+
+<!-- CALCULATOR VIEW -->
+<section id="view-calc">
+    <div class="text-right mb-8">
+        <div id="formula" class="text-sm text-zinc-500 mb-2"></div>
+        <div id="display" class="text-6xl font-black truncate">0</div>
+    </div>
+
+    <!-- SAVE BAR -->
+    <div id="saveBar" class="hidden mb-6">
+        <input id="patternName" placeholder="Pattern name"
+               class="w-full mb-2 p-3 rounded-xl bg-zinc-800 outline-none">
+        <button onclick="savePattern()" class="w-full bg-brand-600 py-3 rounded-xl font-black">
+            Save Pattern
+        </button>
+    </div>
+
+    <!-- KEYPAD -->
+    <div class="grid grid-cols-4 gap-3">
+        <button onclick="clearAll()">AC</button>
+        <button onclick="backspace()">⌫</button>
+        <button onclick="percent()">%</button>
+        <button onclick="setOp('/')">÷</button>
+
+        <button onclick="num('7')">7</button>
+        <button onclick="num('8')">8</button>
+        <button onclick="num('9')">9</button>
+        <button onclick="setOp('*')">×</button>
+
+        <button onclick="num('4')">4</button>
+        <button onclick="num('5')">5</button>
+        <button onclick="num('6')">6</button>
+        <button onclick="setOp('-')">−</button>
+
+        <button onclick="num('1')">1</button>
+        <button onclick="num('2')">2</button>
+        <button onclick="num('3')">3</button>
+        <button onclick="setOp('+')">+</button>
+
+        <button onclick="num('0')" class="col-span-2">0</button>
+        <button onclick="num('.')">.</button>
+        <button onclick="calculate()">=</button>
+    </div>
+</section>
+
+<!-- LIBRARY VIEW -->
+<section id="view-library" class="hidden">
+    <h2 class="text-3xl font-black mb-6">Saved Patterns</h2>
+    <div id="patternList" class="space-y-4"></div>
+</section>
+
+</main>
+
 <script>
-let currentValue = "0";
-let previousValue = null;
-let operator = null;
-let shouldReset = false;
+/* ---------------- CORE STATE ---------------- */
+let current = "0";
+let prev = null;
+let op = null;
+let reset = false;
 
+let nums = [];
+let ops = [];
+
+let patterns = JSON.parse(localStorage.getItem("patterns") || "[]");
+
+/* ---------------- ELEMENTS ---------------- */
 const display = document.getElementById("display");
+const formula = document.getElementById("formula");
+const saveBar = document.getElementById("saveBar");
+const patternList = document.getElementById("patternList");
 
-function updateDisplay() {
-    display.innerText = currentValue;
+/* ---------------- CALCULATOR ---------------- */
+function update() {
+    display.innerText = current;
+    saveBar.classList.toggle("hidden", nums.length === 0);
 }
 
-function appendNumber(num) {
-    if (shouldReset) {
-        currentValue = num;
-        shouldReset = false;
-    } else {
-        if (num === "." && currentValue.includes(".")) return;
-        currentValue = currentValue === "0" ? num : currentValue + num;
-    }
-    updateDisplay();
+function num(n) {
+    if (reset) { current = n; reset = false; }
+    else current = current === "0" ? n : current + n;
+    update();
 }
 
-function setOperator(op) {
-    if (operator !== null) calculate();
-    previousValue = currentValue;
-    operator = op;
-    shouldReset = true;
+function setOp(o) {
+    if (op) calculate();
+    nums.push(current);
+    ops.push(o);
+    prev = current;
+    op = o;
+    reset = true;
+    formula.innerText += current + " " + o + " ";
 }
 
 function calculate() {
-    if (operator === null || previousValue === null) return;
+    if (!op) return;
+    nums.push(current);
 
-    let a = parseFloat(previousValue);
-    let b = parseFloat(currentValue);
-    let result = 0;
+    const a = parseFloat(prev);
+    const b = parseFloat(current);
+    const r = Function(`return ${a}${op}${b}`)();
 
-    switch (operator) {
-        case "+": result = a + b; break;
-        case "-": result = a - b; break;
-        case "*": result = a * b; break;
-        case "/": result = b === 0 ? "Error" : a / b; break;
-    }
-
-    currentValue = result.toString();
-    operator = null;
-    previousValue = null;
-    shouldReset = true;
-    updateDisplay();
+    current = r.toString();
+    prev = null;
+    op = null;
+    reset = true;
+    update();
 }
 
 function clearAll() {
-    currentValue = "0";
-    previousValue = null;
-    operator = null;
-    shouldReset = false;
-    updateDisplay();
+    current = "0"; prev = null; op = null; reset = false;
+    nums = []; ops = [];
+    formula.innerText = "";
+    update();
 }
 
 function backspace() {
-    if (shouldReset) return;
-    currentValue =
-        currentValue.length > 1
-            ? currentValue.slice(0, -1)
-            : "0";
-    updateDisplay();
+    if (!reset) current = current.slice(0, -1) || "0";
+    update();
 }
 
 function percent() {
-    currentValue = (parseFloat(currentValue) / 100).toString();
-    updateDisplay();
+    current = (parseFloat(current) / 100).toString();
+    update();
 }
+
+/* ---------------- PATTERNS ---------------- */
+function savePattern() {
+    const name = document.getElementById("patternName").value || "Pattern";
+    const vars = "xyzabcdefghijklmnop";
+    let expr = "";
+
+    nums.forEach((n, i) => {
+        expr += vars[i];
+        if (ops[i]) expr += ops[i];
+    });
+
+    patterns.push({ name, expr, vars: nums.length });
+    localStorage.setItem("patterns", JSON.stringify(patterns));
+    clearAll();
+    renderPatterns();
+}
+
+function renderPatterns() {
+    patternList.innerHTML = patterns.map((p, i) => `
+        <div class="bg-zinc-800 p-4 rounded-xl">
+            <h3 class="font-bold">${p.name}</h3>
+            <p class="text-sm text-zinc-400">${p.expr}</p>
+            <button onclick="runPattern(${i})"
+                class="mt-3 w-full bg-brand-600 py-2 rounded-xl font-bold">
+                Run
+            </button>
+        </div>
+    `).join("");
+}
+
+function runPattern(i) {
+    let expr = patterns[i].expr;
+    for (let j = 0; j < patterns[i].vars; j++) {
+        const val = prompt(`Value for ${expr[j]}`);
+        expr = expr.replace(expr[j], val);
+    }
+    current = Function(`return ${expr}`)().toString();
+    update();
+    switchTab('calc');
+}
+
+/* ---------------- TABS ---------------- */
+function switchTab(tab) {
+    document.getElementById("view-calc").classList.toggle("hidden", tab !== "calc");
+    document.getElementById("view-library").classList.toggle("hidden", tab !== "library");
+    document.getElementById("tab-calc").classList.toggle("bg-white", tab === "calc");
+    document.getElementById("tab-library").classList.toggle("bg-white", tab === "library");
+    if (tab === "library") renderPatterns();
+}
+
+update();
 </script>
 
 </body>

@@ -1,40 +1,69 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+  <meta charset="UTF-8" />
   <title>Smart Calculator</title>
-  <link rel="stylesheet" href="style.css">
+
+  <!-- CSS -->
+  <link rel="stylesheet" href="style.css" />
+
+  <!-- Eel -->
   <script src="/eel.js"></script>
 </head>
+
 <body>
-  <div class="calculator">
-    <input type="text" id="display" disabled />
-    <div class="buttons">
-      <button onclick="clearDisplay()">AC</button>
-      <button onclick="del()">DEL</button>
-      <button onclick="add('(')">(</button>
-      <button onclick="add(')')">)</button>
+  <div class="app">
 
-      <button onclick="add('7')">7</button>
-      <button onclick="add('8')">8</button>
-      <button onclick="add('9')">9</button>
-      <button onclick="add('/')">÷</button>
+    <!-- ================= CALCULATOR ================= -->
+    <div class="calculator">
 
-      <button onclick="add('4')">4</button>
-      <button onclick="add('5')">5</button>
-      <button onclick="add('6')">6</button>
-      <button onclick="add('*')">×</button>
+      <!-- Top Bar -->
+      <div class="top-bar">
+        <span class="title">Smart Calculator</span>
+        <button class="theme-btn" onclick="toggleTheme()">🌙</button>
+      </div>
 
-      <button onclick="add('1')">1</button>
-      <button onclick="add('2')">2</button>
-      <button onclick="add('3')">3</button>
-      <button onclick="add('-')">−</button>
+      <!-- Display -->
+      <input type="text" id="display" disabled />
 
-      <button onclick="add('0')">0</button>
-      <button onclick="add('.')">.</button>
-      <button onclick="calculate()">=</button>
-      <button onclick="add('+')">+</button>
+      <!-- Buttons -->
+      <div class="buttons">
+        <button onclick="clearDisplay()">AC</button>
+        <button onclick="del()">DEL</button>
+        <button onclick="add('(')">(</button>
+        <button onclick="add(')')">)</button>
+
+        <button onclick="add('7')">7</button>
+        <button onclick="add('8')">8</button>
+        <button onclick="add('9')">9</button>
+        <button onclick="add('/')">÷</button>
+
+        <button onclick="add('4')">4</button>
+        <button onclick="add('5')">5</button>
+        <button onclick="add('6')">6</button>
+        <button onclick="add('*')">×</button>
+
+        <button onclick="add('1')">1</button>
+        <button onclick="add('2')">2</button>
+        <button onclick="add('3')">3</button>
+        <button onclick="add('-')">−</button>
+
+        <button onclick="add('0')">0</button>
+        <button onclick="add('.')">.</button>
+        <button onclick="calculate()">=</button>
+        <button onclick="add('+')">+</button>
+      </div>
     </div>
+
+    <!-- ================= HISTORY PANEL ================= -->
+    <div class="history">
+      <h3>History</h3>
+      <div id="history-list"></div>
+    </div>
+
   </div>
+
+  <!-- JS -->
   <script src="script.js"></script>
 </body>
 </html>

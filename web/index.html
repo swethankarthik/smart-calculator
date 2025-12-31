@@ -2,91 +2,98 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Smart Pattern Calculator</title>
   <link rel="stylesheet" href="style.css">
   <script src="/eel.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
 </head>
 <body>
 
-<!-- Top Bar -->
+<div class="ambient-light one"></div>
+<div class="ambient-light two"></div>
+
 <header class="topbar">
-  <h1>Smart Calculator</h1>
+  <div class="logo">
+    <span class="logo-icon">✦</span> Smart Calc
+  </div>
   <div class="top-actions">
-    <button onclick="openHistory()">History</button>
-    <button onclick="openPatterns()">Patterns</button>
-    <button class="theme-btn" onclick="toggleTheme()">🌙</button>
+    <button onclick="openHistory()" class="nav-btn">History</button>
+    <button onclick="openPatterns()" class="nav-btn">Patterns</button>
+    <button class="theme-btn" onclick="toggleTheme()" title="Toggle Theme">
+      <div class="theme-icon">🌙</div>
+    </button>
   </div>
 </header>
 
-<!-- Main Area -->
 <main class="main">
 
-  <!-- Calculator -->
   <div class="calculator glass" id="calculatorCard">
-    <input id="display" disabled />
+    <input id="display" disabled placeholder="0" />
 
     <div class="buttons">
-      <button onclick="clearDisplay()">AC</button>
-      <button onclick="del()">DEL</button>
-      <button onclick="add('(')">(</button>
-      <button onclick="add(')')">)</button>
+      <button class="op-secondary" onclick="clearDisplay()">AC</button>
+      <button class="op-secondary" onclick="del()">DEL</button>
+      <button class="op-secondary" onclick="add('(')">(</button>
+      <button class="op-secondary" onclick="add(')')">)</button>
 
       <button onclick="add('7')">7</button>
       <button onclick="add('8')">8</button>
       <button onclick="add('9')">9</button>
-      <button onclick="add('/')">÷</button>
+      <button class="op-primary" onclick="add('/')">÷</button>
 
       <button onclick="add('4')">4</button>
       <button onclick="add('5')">5</button>
       <button onclick="add('6')">6</button>
-      <button onclick="add('*')">×</button>
+      <button class="op-primary" onclick="add('*')">×</button>
 
       <button onclick="add('1')">1</button>
       <button onclick="add('2')">2</button>
       <button onclick="add('3')">3</button>
-      <button onclick="add('-')">−</button>
+      <button class="op-primary" onclick="add('-')">−</button>
 
       <button onclick="add('0')">0</button>
       <button onclick="add('.')">.</button>
       <button class="equals" onclick="calculate()">=</button>
-      <button onclick="add('+')">+</button>
+      <button class="op-primary" onclick="add('+')">+</button>
     </div>
 
     <button id="savePatternBtn" class="save-btn" onclick="saveCurrentAsPattern()" hidden>
-      💾 Save as Pattern
+      <span class="icon">💾</span> Save Pattern
     </button>
   </div>
 
 </main>
 
-<!-- History Panel -->
 <aside class="side-panel glass" id="historyPanel">
   <div class="panel-header">
     <h2>History</h2>
-    <button onclick="closePanels()">✕</button>
+    <button class="close-btn" onclick="closePanels()">✕</button>
   </div>
-  <input class="search" placeholder="Search history..." oninput="filterHistory()">
-  <div id="historyList"></div>
+  <div class="search-wrapper">
+    <input class="search" placeholder="Search history..." oninput="filterHistory()">
+  </div>
+  <div id="historyList" class="scroll-area"></div>
 </aside>
 
-<!-- Patterns Panel -->
 <aside class="side-panel glass" id="patternsPanel">
   <div class="panel-header">
     <h2>Patterns</h2>
-    <button onclick="closePanels()">✕</button>
+    <button class="close-btn" onclick="closePanels()">✕</button>
   </div>
-  <input class="search" placeholder="Search patterns..." oninput="filterPatterns()">
-  <div id="patternsList"></div>
+  <div class="search-wrapper">
+    <input class="search" placeholder="Search patterns..." oninput="filterPatterns()">
+  </div>
+  <div id="patternsList" class="scroll-area"></div>
 </aside>
 
-<!-- Modal -->
 <div id="modalOverlay" class="modal-overlay">
   <div class="modal glass">
     <h3 id="modalTitle"></h3>
     <div id="modalInputs"></div>
     <div class="modal-actions">
-      <button onclick="closeModal()">Cancel</button>
-      <button class="primary" onclick="submitModal()">Apply</button>
+      <button class="btn-cancel" onclick="closeModal()">Cancel</button>
+      <button class="btn-confirm" onclick="submitModal()">Save</button>
     </div>
   </div>
 </div>

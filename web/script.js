@@ -1,12 +1,18 @@
-let display = document.getElementById("display");
-let saveBtn = document.getElementById("savePatternBtn");
-let modalOverlay = document.getElementById("modalOverlay");
+// ================= DOM BINDINGS =================
+const display = document.getElementById("display");
+const saveBtn = document.getElementById("savePatternBtn");
+const modalOverlay = document.getElementById("modalOverlay");
 
+const historyPanel = document.getElementById("historyPanel");
+const patternsPanel = document.getElementById("patternsPanel");
+
+// ================= STATE =================
 let lastExpression = "";
-let isDark = true;
+let modalMode = "";
 let modalTemplate = "";
+let isDark = true;
 
-/* ================= BASIC ================= */
+// ================= BASIC CALCULATOR =================
 function add(v) {
   display.value += v;
 }
@@ -22,19 +28,22 @@ function del() {
 
 async function calculate() {
   lastExpression = display.value;
-  let res = await eel.calculate(display.value)();
+
+  const res = await eel.calculate(display.value)();
   display.value = res.result;
+
   saveBtn.hidden = false;
-  loadHistory();
+  loadHistory();   // 🔥 refresh UI
 }
 
+// ================= THEME =================
 function toggleTheme() {
   document.body.classList.toggle("light");
   isDark = !isDark;
   document.querySelector(".theme-btn").innerText = isDark ? "🌙" : "☀️";
 }
 
-/* ================= DASHBOARD ================= */
+// ================= DASHBOARD =================
 function showHistory() {
   historyPanel.hidden = false;
   patternsPanel.hidden = true;
@@ -45,84 +54,111 @@ function showPatterns() {
   patternsPanel.hidden = false;
 }
 
-/* ================= HISTORY ================= */
+// ================= HISTORY =================
 async function loadHistory() {
-  let history = await eel.load_history()();
+  const history = await eel.load_history()();
   historyPanel.innerHTML = "";
+
   history.forEach(h => {
-    let d = document.createElement("div");
-    d.className = "item";
-    d.innerText = `${h[1]} = ${h[2]}`;
-    historyPanel.appendChild(d);
+    const div = document.createElement("div");
+    div.className = "item";
+    div.innerText = `${h[1]} = ${h[2]}`;
+    historyPanel.appendChild(div);
   });
 }
 
-/* ================= SAVE PATTERN ================= */
-async function saveCurrentAsPattern() {
-  await eel.save_as_pattern(lastExpression)();
-  loadPatterns();
+// ================= SAVE PATTERN =================
+function saveCurrentAsPattern() {
+  modalMode = "name";
+
+  const inputs = document.getElementById("modalInputs");
+  inputs.innerHTML = "";
+
+  document.getElementById("modalTitle").innerText = "Name Your Pattern";
+
+  const input = document.createElement("input");
+  input.id = "patternName";
+  input.placeholder = "Pattern name (e.g. Billing Formula)";
+  inputs.appendChild(input);
+
+  modalOverlay.classList.add("show");
 }
 
-/* ================= PATTERNS ================= */
+// ================= PATTERNS =================
 async function loadPatterns() {
-  let patterns = await eel.load_patterns()();
+  const patterns = await eel.load_patterns()();
   patternsPanel.innerHTML = "";
 
   patterns.forEach(p => {
-    let template = p[1];
-    let count = Number(p[2]);
-
-    let d = document.createElement("div");
-    d.className = "item";
-    d.innerHTML = `
-      ${template}
-      <button onclick="usePattern('${template}', ${count})">Use</button>
+    const div = document.createElement("div");
+    div.className = "item";
+    div.innerHTML = `
+      <strong>${p[1]}</strong><br>
+      ${p[2]}
+      <button onclick="usePattern('${p[2]}', ${p[3]})">Use</button>
     `;
-    patternsPanel.appendChild(d);
+    patternsPanel.appendChild(div);
   });
 }
 
-/* ================= MODAL ================= */
-async function usePattern(template, count) {
-  count = Number(count);
+// ================= MODAL =================
+async function submitModal() {
+  if (modalMode === "name") {
+    const name = document.getElementById("patternName").value.trim();
+    if (!name) {
+      alert("Pattern name is required");
+      return;
+    }
 
-  if (count === 0) {
-    let res = await eel.apply_pattern(template, {})();
-    display.value = res;
+    await eel.save_named_pattern(name, lastExpression)();
+    closeModal();
+    loadPatterns();   // 🔥 refresh UI
     return;
   }
 
+  if (modalMode === "use") {
+    const values = {};
+    document.querySelectorAll("#modalInputs input").forEach(inp => {
+      values[inp.dataset.key] = inp.value;
+    });
+
+    const res = await eel.apply_pattern(modalTemplate, values)();
+    display.value = res;
+    closeModal();
+  }
+}
+
+function usePattern(template, count) {
+  count = Number(count);
+
+  if (count === 0) {
+    eel.apply_pattern(template, {}).then(r => display.value = r);
+    return;
+  }
+
+  modalMode = "use";
   modalTemplate = template;
-  let inputs = document.getElementById("modalInputs");
+
+  const inputs = document.getElementById("modalInputs");
   inputs.innerHTML = "";
 
+  document.getElementById("modalTitle").innerText = "Enter Values";
+
   for (let i = 0; i < count; i++) {
-    let key = String.fromCharCode(65 + i);
-    let input = document.createElement("input");
+    const key = String.fromCharCode(65 + i);
+    const input = document.createElement("input");
     input.placeholder = `Value for ${key}`;
     input.dataset.key = key;
     inputs.appendChild(input);
   }
 
-  modalOverlay.classList.add("show");   // ✅ ONLY HERE
+  modalOverlay.classList.add("show");
 }
 
 function closeModal() {
   modalOverlay.classList.remove("show");
 }
 
-async function submitModal() {
-  let values = {};
-  document.querySelectorAll("#modalInputs input").forEach(inp => {
-    values[inp.dataset.key] = inp.value;
-  });
-
-  let res = await eel.apply_pattern(modalTemplate, values)();
-  display.value = res;
-  closeModal();
-}
-
-/* ================= INIT ================= */
-modalOverlay.classList.remove("show");  // ✅ FORCE CLOSED
+// ================= INIT =================
 loadHistory();
 loadPatterns();

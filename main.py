@@ -12,7 +12,7 @@ from database import (
     get_patterns
 )
 
-# ================= PATH FIX (EXE SAFE) =================
+# ---------------- PATH FIX ----------------
 def resource_path(relative_path):
     try:
         base_path = sys._MEIPASS
@@ -22,9 +22,10 @@ def resource_path(relative_path):
 
 
 eel.init(resource_path("web"))
-init_db()
+init_db()  # 🔥 MUST RUN ONCE AT START
 
-# ================= SAFE AST EVALUATOR =================
+
+# ---------------- SAFE EVAL ----------------
 OPS = {
     ast.Add: operator.add,
     ast.Sub: operator.sub,
@@ -34,72 +35,53 @@ OPS = {
 }
 
 
-def safe_eval(expression: str):
+def safe_eval(expr):
     def eval_node(node):
         if isinstance(node, ast.Num):
             return node.n
-
         if isinstance(node, ast.BinOp):
-            left = eval_node(node.left)
-            right = eval_node(node.right)
-            op = OPS.get(type(node.op))
-            if not op:
-                raise ValueError("Unsupported operator")
-            return op(left, right)
-
+            return OPS[type(node.op)](
+                eval_node(node.left),
+                eval_node(node.right)
+            )
         if isinstance(node, ast.UnaryOp):
-            op = OPS.get(type(node.op))
-            if not op:
-                raise ValueError("Unsupported unary operator")
-            return op(eval_node(node.operand))
+            return OPS[type(node.op)](eval_node(node.operand))
+        raise ValueError("Invalid")
 
-        raise ValueError("Invalid expression")
-
-    tree = ast.parse(expression, mode="eval")
-    return eval_node(tree.body)
+    return eval_node(ast.parse(expr, mode="eval").body)
 
 
-# ================= PATTERN EXTRACTION =================
+# ---------------- PATTERN LOGIC ----------------
 def ast_to_pattern(node):
     if isinstance(node, ast.Num):
         return "A"
-
     if isinstance(node, ast.BinOp):
         return f"({type(node.op).__name__} {ast_to_pattern(node.left)} {ast_to_pattern(node.right)})"
-
     if isinstance(node, ast.UnaryOp):
         return f"(Unary {ast_to_pattern(node.operand)})"
-
-    raise ValueError("Unsupported expression")
-
-
-def extract_pattern(expression):
-    tree = ast.parse(expression, mode="eval")
-    return ast_to_pattern(tree.body)
+    raise ValueError("Unsupported")
 
 
-# ================= TEMPLATE GENERATION =================
-def generate_template(expression):
-    tree = ast.parse(expression, mode="eval")
+def extract_pattern(expr):
+    return ast_to_pattern(ast.parse(expr, mode="eval").body)
+
+
+def generate_template(expr):
+    tree = ast.parse(expr, mode="eval")
     counter = 0
 
     def build(node):
         nonlocal counter
-
         if isinstance(node, ast.Num):
-            var = chr(65 + counter)
+            v = chr(65 + counter)
             counter += 1
-            return var
-
+            return v
         if isinstance(node, ast.BinOp):
-            return f"({build(node.left)} {op_symbol(node.op)} {build(node.right)})"
-
+            return f"({build(node.left)} {sym(node.op)} {build(node.right)})"
         if isinstance(node, ast.UnaryOp):
             return f"-{build(node.operand)}"
 
-        raise ValueError("Unsupported node")
-
-    def op_symbol(op):
+    def sym(op):
         return {
             ast.Add: "+",
             ast.Sub: "-",
@@ -107,18 +89,18 @@ def generate_template(expression):
             ast.Div: "/"
         }[type(op)]
 
-    template = build(tree.body)
-    return template, counter
+    return build(tree.body), counter
 
 
-# ================= EEL EXPOSED APIs =================
+# ---------------- EEL API ----------------
 @eel.expose
 def calculate(expression):
     try:
         result = safe_eval(expression)
-        save_history(expression, str(result))
+        save_history(expression, str(result))  # ✅ NOW WORKS
         return {"result": str(result)}
-    except Exception:
+    except Exception as e:
+        print("Calc error:", e)
         return {"result": "Error"}
 
 
@@ -128,13 +110,14 @@ def load_history():
 
 
 @eel.expose
-def save_as_pattern(expression):
+def save_named_pattern(name, expression):
     try:
         pattern_key = extract_pattern(expression)
-        template, var_count = generate_template(expression)
-        save_pattern(pattern_key, template, var_count)
+        template, count = generate_template(expression)
+        save_pattern(name, pattern_key, template, count)  # ✅ NOW WORKS
         return True
-    except Exception:
+    except Exception as e:
+        print("Pattern error:", e)
         return False
 
 
@@ -146,18 +129,12 @@ def load_patterns():
 @eel.expose
 def apply_pattern(template, values):
     expr = template
-    for key, val in values.items():
-        expr = expr.replace(key, val)
-
+    for k, v in values.items():
+        expr = expr.replace(k, v)
     try:
         return str(safe_eval(expr))
-    except Exception:
+    except:
         return "Error"
 
 
-# ================= START APP =================
-eel.start(
-    "index.html",
-    size=(1000, 550),
-    block=True
-)
+eel.start("index.html", size=(1000, 550), block=True)

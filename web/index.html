@@ -1,69 +1,86 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>Smart Calculator</title>
-
-  <!-- CSS -->
-  <link rel="stylesheet" href="style.css" />
-
-  <!-- Eel -->
+  <meta charset="UTF-8">
+  <title>Smart Pattern Calculator</title>
+  <link rel="stylesheet" href="style.css">
   <script src="/eel.js"></script>
 </head>
-
 <body>
-  <div class="app">
 
-    <!-- ================= CALCULATOR ================= -->
-    <div class="calculator">
+<div class="app">
 
-      <!-- Top Bar -->
-      <div class="top-bar">
-        <span class="title">Smart Calculator</span>
-        <button class="theme-btn" onclick="toggleTheme()">🌙</button>
-      </div>
+  <!-- ================= CALCULATOR ================= -->
+  <div class="calculator">
 
-      <!-- Display -->
-      <input type="text" id="display" disabled />
-
-      <!-- Buttons -->
-      <div class="buttons">
-        <button onclick="clearDisplay()">AC</button>
-        <button onclick="del()">DEL</button>
-        <button onclick="add('(')">(</button>
-        <button onclick="add(')')">)</button>
-
-        <button onclick="add('7')">7</button>
-        <button onclick="add('8')">8</button>
-        <button onclick="add('9')">9</button>
-        <button onclick="add('/')">÷</button>
-
-        <button onclick="add('4')">4</button>
-        <button onclick="add('5')">5</button>
-        <button onclick="add('6')">6</button>
-        <button onclick="add('*')">×</button>
-
-        <button onclick="add('1')">1</button>
-        <button onclick="add('2')">2</button>
-        <button onclick="add('3')">3</button>
-        <button onclick="add('-')">−</button>
-
-        <button onclick="add('0')">0</button>
-        <button onclick="add('.')">.</button>
-        <button onclick="calculate()">=</button>
-        <button onclick="add('+')">+</button>
-      </div>
+    <div class="top-bar">
+      <h2>Smart Calculator</h2>
+      <button class="theme-btn" onclick="toggleTheme()">🌙</button>
     </div>
 
-    <!-- ================= HISTORY PANEL ================= -->
-    <div class="history">
-      <h3>History</h3>
-      <div id="history-list"></div>
+    <input id="display" disabled />
+
+    <div class="buttons">
+      <button onclick="clearDisplay()">AC</button>
+      <button onclick="del()">DEL</button>
+      <button onclick="add('(')">(</button>
+      <button onclick="add(')')">)</button>
+
+      <button onclick="add('7')">7</button>
+      <button onclick="add('8')">8</button>
+      <button onclick="add('9')">9</button>
+      <button onclick="add('/')">÷</button>
+
+      <button onclick="add('4')">4</button>
+      <button onclick="add('5')">5</button>
+      <button onclick="add('6')">6</button>
+      <button onclick="add('*')">×</button>
+
+      <button onclick="add('1')">1</button>
+      <button onclick="add('2')">2</button>
+      <button onclick="add('3')">3</button>
+      <button onclick="add('-')">−</button>
+
+      <button onclick="add('0')">0</button>
+      <button onclick="add('.')">.</button>
+      <button class="equals" onclick="calculate()">=</button>
+      <button onclick="add('+')">+</button>
     </div>
+
+    <!-- Save as Pattern -->
+    <button id="savePatternBtn" class="save-btn" onclick="saveCurrentAsPattern()" hidden>
+      💾 Save as Pattern
+    </button>
+  </div>
+
+  <!-- ================= DASHBOARD ================= -->
+  <div class="dashboard">
+
+    <div class="dashboard-tabs">
+      <button onclick="showHistory()">History</button>
+      <button onclick="showPatterns()">Patterns</button>
+    </div>
+
+    <div id="historyPanel" class="panel"></div>
+    <div id="patternsPanel" class="panel" hidden></div>
 
   </div>
 
-  <!-- JS -->
-  <script src="script.js"></script>
+</div>
+
+<!-- ================= MODAL ================= -->
+<div id="modalOverlay" class="modal-overlay" hidden>
+  <div class="modal">
+    <h3 id="modalTitle">Enter Values</h3>
+    <div id="modalInputs"></div>
+
+    <div class="modal-actions">
+      <button onclick="closeModal()">Cancel</button>
+      <button class="primary" onclick="submitModal()">Apply</button>
+    </div>
+  </div>
+</div>
+
+<script src="script.js"></script>
 </body>
 </html>

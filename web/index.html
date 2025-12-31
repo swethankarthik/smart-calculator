@@ -8,16 +8,21 @@
 </head>
 <body>
 
-<div class="app">
+<!-- Top Bar -->
+<header class="topbar">
+  <h1>Smart Calculator</h1>
+  <div class="top-actions">
+    <button onclick="openHistory()">History</button>
+    <button onclick="openPatterns()">Patterns</button>
+    <button class="theme-btn" onclick="toggleTheme()">🌙</button>
+  </div>
+</header>
 
-  <!-- ================= CALCULATOR ================= -->
-  <div class="calculator">
+<!-- Main Area -->
+<main class="main">
 
-    <div class="top-bar">
-      <h2>Smart Calculator</h2>
-      <button class="theme-btn" onclick="toggleTheme()">🌙</button>
-    </div>
-
+  <!-- Calculator -->
+  <div class="calculator glass" id="calculatorCard">
     <input id="display" disabled />
 
     <div class="buttons">
@@ -52,29 +57,32 @@
     </button>
   </div>
 
-  <!-- ================= DASHBOARD ================= -->
-  <div class="dashboard">
+</main>
 
-    <div class="dashboard-tabs">
-      <button onclick="showHistory()">History</button>
-      <button onclick="showPatterns()">Patterns</button>
-    </div>
-
-    <!-- Search bars -->
-    <input id="historySearch" class="search" placeholder="Search history..." oninput="filterHistory()">
-    <input id="patternsSearch" class="search" placeholder="Search patterns..." oninput="filterPatterns()" hidden>
-
-    <div id="historyPanel" class="panel"></div>
-    <div id="patternsPanel" class="panel" hidden></div>
-
+<!-- History Panel -->
+<aside class="side-panel glass" id="historyPanel">
+  <div class="panel-header">
+    <h2>History</h2>
+    <button onclick="closePanels()">✕</button>
   </div>
+  <input class="search" placeholder="Search history..." oninput="filterHistory()">
+  <div id="historyList"></div>
+</aside>
 
-</div>
+<!-- Patterns Panel -->
+<aside class="side-panel glass" id="patternsPanel">
+  <div class="panel-header">
+    <h2>Patterns</h2>
+    <button onclick="closePanels()">✕</button>
+  </div>
+  <input class="search" placeholder="Search patterns..." oninput="filterPatterns()">
+  <div id="patternsList"></div>
+</aside>
 
-<!-- ================= MODAL ================= -->
+<!-- Modal -->
 <div id="modalOverlay" class="modal-overlay">
-  <div class="modal">
-    <h3 id="modalTitle">Modal</h3>
+  <div class="modal glass">
+    <h3 id="modalTitle"></h3>
     <div id="modalInputs"></div>
     <div class="modal-actions">
       <button onclick="closeModal()">Cancel</button>

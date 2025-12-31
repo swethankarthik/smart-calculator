@@ -1,51 +1,65 @@
 :root {
-  --bg: #0f172a;
-  --card: #111827;
-  --btn: #1f2933;
-  --text: #ffffff;
-  --accent: #2563eb;
-}
-
-.light {
-  --bg: #f1f5f9;
-  --card: #ffffff;
-  --btn: #e5e7eb;
-  --text: #000000;
+  --bg-dark: radial-gradient(circle at top, #1e293b, #020617);
+  --bg-light: radial-gradient(circle at top, #f8fafc, #e5e7eb);
+  --glass-dark: rgba(17, 24, 39, 0.55);
+  --glass-light: rgba(255, 255, 255, 0.65);
+  --border-dark: rgba(255,255,255,0.15);
+  --border-light: rgba(0,0,0,0.1);
   --accent: #3b82f6;
 }
 
 body {
   margin: 0;
-  background: var(--bg);
-  color: var(--text);
-  font-family: "Segoe UI", Arial;
+  min-height: 100vh;
+  background: var(--bg-dark);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  color: white;
+  overflow: hidden;
 }
 
-.app {
-  display: flex;
-  gap: 20px;
-  padding: 20px;
+body.light {
+  background: var(--bg-light);
+  color: black;
 }
 
-/* ================= CALCULATOR ================= */
-.calculator {
-  background: var(--card);
-  padding: 20px;
-  border-radius: 18px;
-  width: 340px;
+/* Glass */
+.glass {
+  background: var(--glass-dark);
+  backdrop-filter: blur(20px);
+  border: 1px solid var(--border-dark);
+  border-radius: 20px;
 }
 
-.top-bar {
+body.light .glass {
+  background: var(--glass-light);
+  border-color: var(--border-light);
+}
+
+/* Topbar */
+.topbar {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  padding: 16px 24px;
 }
 
-.theme-btn {
-  background: none;
-  border: none;
-  font-size: 20px;
-  cursor: pointer;
+.top-actions button {
+  margin-left: 10px;
+}
+
+/* Main */
+.main {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: calc(100vh - 70px);
+}
+
+/* Calculator */
+.calculator {
+  width: 340px;
+  padding: 20px;
+  animation: floatIn 0.6s cubic-bezier(.2,.8,.2,1);
 }
 
 #display {
@@ -53,11 +67,9 @@ body {
   height: 60px;
   font-size: 26px;
   text-align: right;
-  margin: 15px 0;
-  border-radius: 10px;
+  border-radius: 12px;
   border: none;
-  background: black;
-  color: white;
+  margin-bottom: 15px;
 }
 
 .buttons {
@@ -67,23 +79,26 @@ body {
 }
 
 button {
-  height: 55px;
-  font-size: 18px;
+  height: 52px;
+  border-radius: 14px;
   border: none;
-  border-radius: 12px;
-  background: var(--btn);
-  color: var(--text);
   cursor: pointer;
-  transition: transform 0.1s ease, background 0.2s;
+  background: rgba(255,255,255,0.08);
+  color: inherit;
+  transition: transform 0.15s ease, background 0.2s;
 }
 
 button:hover {
-  background: var(--accent);
-  transform: scale(1.03);
+  background: rgba(255,255,255,0.18);
+}
+
+button:active {
+  transform: scale(0.96);
 }
 
 .equals {
   background: var(--accent);
+  color: white;
 }
 
 .save-btn {
@@ -92,93 +107,77 @@ button:hover {
   background: #22c55e;
 }
 
-/* ================= DASHBOARD ================= */
-.dashboard {
-  background: var(--card);
-  padding: 15px;
-  border-radius: 18px;
-  width: 300px;
-}
-
-.dashboard-tabs {
-  display: flex;
-  gap: 10px;
-  margin-bottom: 10px;
-}
-
-.panel {
-  max-height: 420px;
-  overflow-y: auto;
-}
-
-.item {
-  background: var(--btn);
-  padding: 10px;
-  border-radius: 10px;
-  margin-bottom: 8px;
-}
-
-/* ================= MODAL ================= */
-/* 🔥 IMPORTANT: display is NONE by default */
-.modal-overlay {
+/* Side Panels */
+.side-panel {
   position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.6);
-  display: none;                 /* ✅ FIX */
-  justify-content: center;
-  align-items: center;
-}
-
-.modal-overlay.show {
-  display: flex;                 /* ✅ Only show when needed */
-  animation: fadeIn 0.2s ease;
-}
-
-.modal {
-  background: var(--card);
+  top: 0;
+  right: -420px;
+  width: 380px;
+  height: 100vh;
   padding: 20px;
-  border-radius: 16px;
-  width: 300px;
-  animation: slideUp 0.25s ease;
+  transition: right 0.45s cubic-bezier(.2,.8,.2,1);
+  z-index: 10;
 }
 
-.modal input {
-  width: 100%;
-  padding: 8px;
-  margin-bottom: 10px;
-  border-radius: 8px;
-  border: none;
+.side-panel.open {
+  right: 0;
 }
 
-.modal-actions {
+.panel-header {
   display: flex;
   justify-content: space-between;
-}
-
-.modal-actions .primary {
-  background: var(--accent);
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-
-@keyframes slideUp {
-  from { transform: translateY(20px); }
-  to { transform: translateY(0); }
+  align-items: center;
 }
 
 .search {
   width: 100%;
-  padding: 8px 10px;
-  margin-bottom: 10px;
+  padding: 8px;
   border-radius: 10px;
   border: none;
-  background: var(--btn);
-  color: var(--text);
+  margin: 10px 0;
 }
 
-.search::placeholder {
-  color: #9ca3af;
+.item {
+  padding: 10px;
+  border-radius: 12px;
+  margin-bottom: 8px;
+  background: rgba(255,255,255,0.1);
+  animation: fadeUp 0.25s ease;
+}
+
+/* Modal */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  display: none;
+  justify-content: center;
+  align-items: center;
+  z-index: 20;
+}
+
+.modal-overlay.show {
+  display: flex;
+}
+
+.modal {
+  width: 320px;
+  padding: 20px;
+  animation: scaleIn 0.25s ease;
+}
+
+/* Animations */
+@keyframes floatIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.96); }
+  to { opacity: 1; transform: scale(1); }
 }

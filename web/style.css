@@ -168,3 +168,17 @@ button:hover {
   from { transform: translateY(20px); }
   to { transform: translateY(0); }
 }
+
+.search {
+  width: 100%;
+  padding: 8px 10px;
+  margin-bottom: 10px;
+  border-radius: 10px;
+  border: none;
+  background: var(--btn);
+  color: var(--text);
+}
+
+.search::placeholder {
+  color: #9ca3af;
+}

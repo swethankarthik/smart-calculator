@@ -47,7 +47,6 @@
       <button onclick="add('+')">+</button>
     </div>
 
-    <!-- Save as Pattern -->
     <button id="savePatternBtn" class="save-btn" onclick="saveCurrentAsPattern()" hidden>
       💾 Save as Pattern
     </button>
@@ -61,6 +60,10 @@
       <button onclick="showPatterns()">Patterns</button>
     </div>
 
+    <!-- Search bars -->
+    <input id="historySearch" class="search" placeholder="Search history..." oninput="filterHistory()">
+    <input id="patternsSearch" class="search" placeholder="Search patterns..." oninput="filterPatterns()" hidden>
+
     <div id="historyPanel" class="panel"></div>
     <div id="patternsPanel" class="panel" hidden></div>
 
@@ -69,11 +72,10 @@
 </div>
 
 <!-- ================= MODAL ================= -->
-<div id="modalOverlay" class="modal-overlay" hidden>
+<div id="modalOverlay" class="modal-overlay">
   <div class="modal">
-    <h3 id="modalTitle">Enter Values</h3>
+    <h3 id="modalTitle">Modal</h3>
     <div id="modalInputs"></div>
-
     <div class="modal-actions">
       <button onclick="closeModal()">Cancel</button>
       <button class="primary" onclick="submitModal()">Apply</button>

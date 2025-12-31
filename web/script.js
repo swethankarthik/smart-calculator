@@ -1,4 +1,4 @@
-// ================= DOM BINDINGS =================
+// ================= DOM =================
 const display = document.getElementById("display");
 const saveBtn = document.getElementById("savePatternBtn");
 const modalOverlay = document.getElementById("modalOverlay");
@@ -6,159 +6,164 @@ const modalOverlay = document.getElementById("modalOverlay");
 const historyPanel = document.getElementById("historyPanel");
 const patternsPanel = document.getElementById("patternsPanel");
 
+const historySearch = document.getElementById("historySearch");
+const patternsSearch = document.getElementById("patternsSearch");
+
 // ================= STATE =================
 let lastExpression = "";
 let modalMode = "";
 let modalTemplate = "";
 let isDark = true;
 
-// ================= BASIC CALCULATOR =================
-function add(v) {
-  display.value += v;
-}
+let historyCache = [];
+let patternsCache = [];
 
-function clearDisplay() {
-  display.value = "";
-  saveBtn.hidden = true;
-}
+// ================= CALCULATOR =================
+function add(v){ display.value += v; }
+function clearDisplay(){ display.value=""; saveBtn.hidden=true; }
+function del(){ display.value = display.value.slice(0,-1); }
 
-function del() {
-  display.value = display.value.slice(0, -1);
-}
-
-async function calculate() {
+async function calculate(){
   lastExpression = display.value;
-
   const res = await eel.calculate(display.value)();
   display.value = res.result;
-
   saveBtn.hidden = false;
-  loadHistory();   // 🔥 refresh UI
+  loadHistory();
 }
 
 // ================= THEME =================
-function toggleTheme() {
+function toggleTheme(){
   document.body.classList.toggle("light");
   isDark = !isDark;
   document.querySelector(".theme-btn").innerText = isDark ? "🌙" : "☀️";
 }
 
 // ================= DASHBOARD =================
-function showHistory() {
+function showHistory(){
   historyPanel.hidden = false;
   patternsPanel.hidden = true;
+  historySearch.hidden = false;
+  patternsSearch.hidden = true;
 }
 
-function showPatterns() {
+function showPatterns(){
   historyPanel.hidden = true;
   patternsPanel.hidden = false;
+  historySearch.hidden = true;
+  patternsSearch.hidden = false;
 }
 
 // ================= HISTORY =================
-async function loadHistory() {
-  const history = await eel.load_history()();
-  historyPanel.innerHTML = "";
+async function loadHistory(){
+  historyCache = await eel.load_history()();
+  renderHistory(historyCache);
+}
 
-  history.forEach(h => {
-    const div = document.createElement("div");
-    div.className = "item";
-    div.innerText = `${h[1]} = ${h[2]}`;
-    historyPanel.appendChild(div);
+function renderHistory(data){
+  historyPanel.innerHTML = "";
+  data.forEach(h=>{
+    const d = document.createElement("div");
+    d.className="item";
+    d.innerText = `${h[1]} = ${h[2]}`;
+    historyPanel.appendChild(d);
   });
 }
 
-// ================= SAVE PATTERN =================
-function saveCurrentAsPattern() {
-  modalMode = "name";
+function filterHistory(){
+  const q = historySearch.value.toLowerCase();
+  renderHistory(
+    historyCache.filter(h =>
+      h[1].toLowerCase().includes(q) ||
+      h[2].toLowerCase().includes(q)
+    )
+  );
+}
 
+// ================= SAVE PATTERN =================
+function saveCurrentAsPattern(){
+  modalMode = "name";
+  document.getElementById("modalTitle").innerText = "Name Your Pattern";
   const inputs = document.getElementById("modalInputs");
   inputs.innerHTML = "";
 
-  document.getElementById("modalTitle").innerText = "Name Your Pattern";
-
-  const input = document.createElement("input");
-  input.id = "patternName";
-  input.placeholder = "Pattern name (e.g. Billing Formula)";
-  inputs.appendChild(input);
+  const inp = document.createElement("input");
+  inp.id = "patternName";
+  inp.placeholder = "Pattern name (e.g. Billing Formula)";
+  inputs.appendChild(inp);
 
   modalOverlay.classList.add("show");
 }
 
 // ================= PATTERNS =================
-async function loadPatterns() {
-  const patterns = await eel.load_patterns()();
-  patternsPanel.innerHTML = "";
+async function loadPatterns(){
+  patternsCache = await eel.load_patterns()();
+  renderPatterns(patternsCache);
+}
 
-  patterns.forEach(p => {
-    const div = document.createElement("div");
-    div.className = "item";
-    div.innerHTML = `
+function renderPatterns(data){
+  patternsPanel.innerHTML = "";
+  data.forEach(p=>{
+    const d = document.createElement("div");
+    d.className="item";
+    d.innerHTML = `
       <strong>${p[1]}</strong><br>
       ${p[2]}
       <button onclick="usePattern('${p[2]}', ${p[3]})">Use</button>
     `;
-    patternsPanel.appendChild(div);
+    patternsPanel.appendChild(d);
   });
 }
 
-// ================= MODAL =================
-async function submitModal() {
-  if (modalMode === "name") {
-    const name = document.getElementById("patternName").value.trim();
-    if (!name) {
-      alert("Pattern name is required");
-      return;
-    }
+function filterPatterns(){
+  const q = patternsSearch.value.toLowerCase();
+  renderPatterns(
+    patternsCache.filter(p =>
+      p[1].toLowerCase().includes(q) ||
+      p[2].toLowerCase().includes(q)
+    )
+  );
+}
 
+// ================= MODAL =================
+async function submitModal(){
+  if(modalMode==="name"){
+    const name = document.getElementById("patternName").value.trim();
+    if(!name){ alert("Pattern name required"); return; }
     await eel.save_named_pattern(name, lastExpression)();
     closeModal();
-    loadPatterns();   // 🔥 refresh UI
-    return;
-  }
-
-  if (modalMode === "use") {
-    const values = {};
-    document.querySelectorAll("#modalInputs input").forEach(inp => {
-      values[inp.dataset.key] = inp.value;
-    });
-
-    const res = await eel.apply_pattern(modalTemplate, values)();
-    display.value = res;
-    closeModal();
+    loadPatterns();
   }
 }
 
-function usePattern(template, count) {
+function usePattern(template,count){
   count = Number(count);
-
-  if (count === 0) {
-    eel.apply_pattern(template, {}).then(r => display.value = r);
+  if(count===0){
+    eel.apply_pattern(template,{}).then(r=>display.value=r);
     return;
   }
 
-  modalMode = "use";
-  modalTemplate = template;
+  modalMode="use";
+  modalTemplate=template;
 
   const inputs = document.getElementById("modalInputs");
-  inputs.innerHTML = "";
+  inputs.innerHTML="";
+  document.getElementById("modalTitle").innerText="Enter Values";
 
-  document.getElementById("modalTitle").innerText = "Enter Values";
-
-  for (let i = 0; i < count; i++) {
-    const key = String.fromCharCode(65 + i);
-    const input = document.createElement("input");
-    input.placeholder = `Value for ${key}`;
-    input.dataset.key = key;
-    inputs.appendChild(input);
+  for(let i=0;i<count;i++){
+    const k=String.fromCharCode(65+i);
+    const inp=document.createElement("input");
+    inp.placeholder=`Value for ${k}`;
+    inp.dataset.key=k;
+    inputs.appendChild(inp);
   }
-
   modalOverlay.classList.add("show");
 }
 
-function closeModal() {
+function closeModal(){
   modalOverlay.classList.remove("show");
 }
 
 // ================= INIT =================
 loadHistory();
 loadPatterns();
+showHistory();
